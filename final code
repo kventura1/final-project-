@@ -1,0 +1,96 @@
+import pygame
+import random
+
+pygame.init()
+
+window_width, window_height = 700, 500
+display = pygame.display.set_mode((window_width, window_height))
+pygame.display.set_caption("Pong")
+
+white = (240, 240, 240)
+black = (5, 5, 5)
+
+ball_speed = [7, 7]
+player_speed = 6
+enemy_speed = 7.5
+player_points = 0
+enemy_points = 0
+
+font = pygame.font.Font(None, 60)
+
+player_paddle = pygame.Rect(window_width - 15, window_height // 2 - 50, 15, 130)
+enemy_paddle = pygame.Rect(10, window_height // 2 - 60, 10, 120)
+ball = pygame.Rect(window_width // 2 - 15, window_height // 2 - 15, 30, 30)
+#this pretty much make how the games looks like the bacground and the color of the paddels 
+def bacground():
+    display.fill(black)
+    pygame.draw.rect(display, white, player_paddle)
+    pygame.draw.rect(display, white, enemy_paddle)
+    pygame.draw.ellipse(display, white, ball)
+# this handels the coollisons like for the ball cant go trhoght the paddel and can go out of bound
+def barriers():
+    if ball.colliderect(player_paddle) or ball.colliderect(enemy_paddle):
+        ball_speed[0] = -ball_speed[0]
+    
+    if ball.top <= 0 or ball.bottom >= window_height:
+        ball_speed[1] = -ball_speed[1]
+# this how u move your paddel use the arrow keys
+def player_movement():
+    keys = pygame.key.get_pressed()
+    if keys[pygame.K_UP] and player_paddle.top > 0:
+        player_paddle.y -= player_speed
+    if keys[pygame.K_DOWN] and player_paddle.bottom < window_height:
+        player_paddle.y += player_speed
+# this is how the ai moves pretty much making it imposbible to win
+def ai_movement():
+    if ball.top < enemy_paddle.top:
+        enemy_paddle.y -= enemy_speed
+    if ball.bottom > enemy_paddle.bottom:
+        enemy_paddle.y += enemy_speed
+
+def ball_reset():
+    ball.center = (window_width // 2, window_height // 2)
+
+playing = True
+while playing:
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            playing = False
+    
+    ball.x += ball_speed[0]
+    ball.y += ball_speed[1]
+
+    barriers()
+
+    player_movement()
+
+    ai_movement()
+
+    if ball.left <= 0:
+        enemy_points += 1
+        ball_reset()
+    elif ball.right >= window_width:
+        player_points += 1
+        ball_reset()
+
+    bacground()
+
+    player_points_text = font.render(str(player_points), True, white)
+    enemy_points_text = font.render(str(enemy_points), True, white)
+    display.blit(player_points_text, (window_width // 2 + 50, 50))
+    display.blit(enemy_points_text, (window_width // 2 - 80, 50))
+# this will check who gets to ten points first 
+    if player_points >= 10:
+        winner_text = font.render("you Wins!", True, white)
+        display.blit(winner_text, (window_width // 2 - 150, window_height // 2))
+        playing = False
+    elif enemy_points >= 10:
+        winner_text = font.render("ai Wins!", True, white)
+        display.blit(winner_text, (window_width // 2 - 200, window_height // 2))
+        playing = False
+
+    pygame.display.flip()
+
+    pygame.time.Clock().tick(60)
+
+pygame.quit()
